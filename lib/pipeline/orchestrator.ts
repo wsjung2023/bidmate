@@ -131,7 +131,7 @@ export async function runPipeline(listing: Listing): Promise<PipelineResult> {
         title: reportOutput.title,
         summary: reportOutput.summary,
         fullReport: reportOutput.fullReport,
-        recommendedBid: reportOutput.recommendedBid,
+        recommendedBid: BigInt(reportOutput.recommendedBid),
         expectedRoi: reportOutput.expectedRoi,
         riskLevel: reportOutput.riskLevel,
         recommendation: reportOutput.recommendation,

@@ -12,10 +12,6 @@ jest.mock('@/lib/db/prisma', () => ({
     listing: {
       update: jest.fn().mockResolvedValue({}),
     },
-    pipelineRun: {
-      create: jest.fn().mockResolvedValue({ id: 'run-1' }),
-      update: jest.fn().mockResolvedValue({}),
-    },
   },
 }))
 
@@ -70,5 +66,34 @@ describe('runPipeline', () => {
     expect(result.status).toBe('COMPLETED')
     expect(result.score).toBe(75)
     expect(result.dropped).toBe(false)
+  })
+
+  it('marks listing as dropped when drop rules fire', async () => {
+    const { checkDropRules } = jest.requireMock('@/lib/scoring/drop-rules')
+    checkDropRules.mockReturnValueOnce({ drop: true, reason: '법정지상권 성립 가능' })
+
+    const { prisma } = jest.requireMock('@/lib/db/prisma')
+
+    const listing = {
+      id: '1',
+      address: '강원도 평창군',
+      propertyType: 'PENSION',
+      listingType: 'AUCTION',
+      minimumBid: BigInt(595_000_000),
+      appraisalValue: BigInt(850_000_000),
+      area: 412,
+      buildYear: 2015,
+      auctionCount: 1,
+      isDropped: false,
+    }
+
+    const result = await runPipeline(listing as any)
+
+    expect(result.status).toBe('DROPPED')
+    expect(result.dropped).toBe(true)
+    expect(result.droppedReason).toBe('법정지상권 성립 가능')
+    expect(prisma.listing.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ isDropped: true }) })
+    )
   })
 })
