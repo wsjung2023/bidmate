@@ -1,0 +1,269 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Auth.js v5 required models
+// ═══════════════════════════════════════════════════════════════
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(USER)
+
+  criteria      InvestmentCriteria?
+  savedListings SavedListing[]
+  accounts      Account[]
+  sessions      Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Investment criteria (per user)
+// ═══════════════════════════════════════════════════════════════
+
+model InvestmentCriteria {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  regions       String[]
+  minBid        BigInt?
+  maxBid        BigInt?
+  minArea       Float?
+  maxArea       Float?
+  propertyTypes PropertyType[]
+  listingTypes  ListingType[]
+  minRoi        Float?
+  minScore      Int            @default(60)
+
+  telegramChatId  String?
+  notifyEnabled   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Listing models
+// ═══════════════════════════════════════════════════════════════
+
+enum PropertyType {
+  HOTEL
+  PENSION
+  GUESTHOUSE
+  MOTEL
+  RESORT
+  BUILDING
+  LAND
+  OTHER
+}
+
+enum ListingType {
+  AUCTION
+  PUBLIC_SALE
+  LODGING_LEASE
+}
+
+model Listing {
+  id          String       @id @default(cuid())
+  externalId  String?      @unique
+  source      String
+  listingType ListingType
+  propertyType PropertyType
+
+  address       String
+  addressDetail String?
+  latitude      Float?
+  longitude     Float?
+
+  appraisalValue BigInt
+  minimumBid     BigInt
+
+  area      Float?
+  floorInfo String?
+  buildYear Int?
+
+  auctionDate  DateTime?
+  auctionCount Int       @default(0)
+  caseNumber   String?
+  court        String?
+
+  rawData Json?
+
+  analyses Analysis[]
+  savedBy  SavedListing[]
+
+  score         Int?
+  isDropped     Boolean @default(false)
+  droppedReason String?
+
+  collectedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([listingType, score])
+  @@index([isDropped, score])
+  @@index([collectedAt])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Analysis pipeline models
+// ═══════════════════════════════════════════════════════════════
+
+enum AnalysisStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  DROPPED
+}
+
+model Analysis {
+  id        String @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+
+  rightsAnalysis Json?
+  licenseCheck   Json?
+  commercialArea Json?
+  financials     Json?
+  riskFactors    Json?
+  strategy       Json?
+
+  score          Int?
+  scoreBreakdown Json?
+
+  report Report?
+
+  status       AnalysisStatus @default(PENDING)
+  errorMessage String?        @db.Text
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([listingId, status])
+  @@index([createdAt])
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Recommendation {
+  STRONG_BUY
+  BUY
+  NEUTRAL
+  PASS
+  AVOID
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  analysisId String   @unique
+  analysis   Analysis @relation(fields: [analysisId], references: [id])
+
+  title      String
+  summary    String @db.Text
+  fullReport String @db.Text
+
+  recommendedBid BigInt?
+  expectedRoi    Float?
+  riskLevel      RiskLevel?
+  recommendation Recommendation?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model SavedListing {
+  id        String @id @default(cuid())
+  userId    String
+  listingId String
+
+  user    User    @relation(fields: [userId], references: [id])
+  listing Listing @relation(fields: [listingId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Pipeline orchestration
+// ═══════════════════════════════════════════════════════════════
+
+enum PipelineStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+model PipelineRun {
+  id     String         @id @default(cuid())
+  status PipelineStatus @default(RUNNING)
+
+  totalItems Int  @default(0)
+  processed  Int  @default(0)
+  failed     Int  @default(0)
+  dropped    Int  @default(0)
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  errorLog    String?   @db.Text
+}
