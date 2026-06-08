@@ -4,6 +4,10 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/db/prisma'
 import type { NextAuthConfig } from 'next-auth'
 
+if (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET) {
+  throw new Error('Missing required environment variables: AUTH_GOOGLE_ID and/or AUTH_GOOGLE_SECRET')
+}
+
 export const authConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [

@@ -7,6 +7,7 @@ export default auth((req) => {
 
   const isApiAuth = pathname.startsWith('/api/auth')
   const isLoginPage = pathname === '/login'
+  const isApiRoute = pathname.startsWith('/api/')
 
   if (isApiAuth) return NextResponse.next()
 
@@ -18,6 +19,9 @@ export default auth((req) => {
   }
 
   if (!isLoggedIn) {
+    if (isApiRoute) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     return NextResponse.redirect(new URL('/login', req.url))
   }
 

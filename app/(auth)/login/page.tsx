@@ -1,4 +1,4 @@
-import { signIn } from '@/lib/auth/config'
+import { loginWithGoogle } from './actions'
 
 export default function LoginPage() {
   return (
@@ -11,10 +11,7 @@ export default function LoginPage() {
           AI 기반 경매·공매 자동 분석 시스템
         </p>
         <form
-          action={async () => {
-            'use server'
-            await signIn('google', { redirectTo: '/dashboard' })
-          }}
+          action={loginWithGoogle}
         >
           <button
             type="submit"

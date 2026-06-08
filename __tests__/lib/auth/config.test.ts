@@ -29,7 +29,10 @@ jest.mock('next-auth/providers/google', () => ({
   default: jest.fn((opts) => ({ id: 'google', ...opts })),
 }))
 
-import { authConfig } from '@/lib/auth/config'
+// Use require() instead of static import so the module is loaded AFTER
+// the process.env assignments above (SWC hoists static imports above
+// process.env assignments in the transformed output).
+const { authConfig } = require('@/lib/auth/config')
 
 describe('authConfig', () => {
   it('exports a valid Auth.js config object', () => {
