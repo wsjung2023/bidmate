@@ -49,6 +49,8 @@ describe('GET /api/listings', () => {
     expect(body.listings).toHaveLength(1)
     expect(body.total).toBe(1)
     expect(body.page).toBe(1)
+    expect(typeof body.listings[0].minimumBid).toBe('string')
+    expect(typeof body.listings[0].appraisalValue).toBe('string')
   })
 
   it('returns 401 when not authenticated', async () => {

@@ -1,35 +1,25 @@
 import { prisma } from '@/lib/db/prisma'
 import Link from 'next/link'
-import type { ListingType } from '@prisma/client'
-
-const TYPE_LABEL: Record<string, string> = {
-  AUCTION: '경매',
-  PUBLIC_SALE: '공매',
-  LODGING_LEASE: '숙박임차',
-}
-const PROPERTY_LABEL: Record<string, string> = {
-  HOTEL: '호텔',
-  PENSION: '펜션',
-  GUESTHOUSE: '게스트하우스',
-  MOTEL: '모텔',
-  RESORT: '리조트',
-  BUILDING: '건물',
-  LAND: '토지',
-  OTHER: '기타',
-}
+import { ListingType } from '@prisma/client'
+import { LISTING_TYPE_LABEL, PROPERTY_TYPE_LABEL } from '@/lib/labels'
 
 export default async function ListingsPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string; type?: string; dropped?: string }>
 }) {
-  const { page: pageStr, type, dropped: droppedStr } = await searchParams
-  const page = Math.max(1, parseInt(pageStr ?? '1'))
+  const { page: pageStr, type: typeParam, dropped: droppedStr } = await searchParams
+  const page = Math.max(1, parseInt(pageStr ?? '1') || 1)
   const dropped = droppedStr === 'true'
+
+  const VALID_LISTING_TYPES = new Set<string>(['AUCTION', 'PUBLIC_SALE', 'LODGING_LEASE'])
+  const type: ListingType | null = typeParam && VALID_LISTING_TYPES.has(typeParam)
+    ? (typeParam as ListingType)
+    : null
 
   const where = {
     isDropped: dropped,
-    ...(type && { listingType: type as ListingType }),
+    ...(type && { listingType: type }),
   }
 
   const [listings, total] = await Promise.all([
@@ -61,7 +51,7 @@ export default async function ListingsPage({
               key={key}
               href={`/listings${key ? `?type=${key}` : ''}`}
               className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                (type ?? '') === key
+                (typeParam ?? '') === key
                   ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
               }`}
@@ -82,10 +72,10 @@ export default async function ListingsPage({
             <div className="flex-1 min-w-0 pr-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                  {TYPE_LABEL[listing.listingType] ?? listing.listingType}
+                  {LISTING_TYPE_LABEL[listing.listingType] ?? listing.listingType}
                 </span>
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                  {PROPERTY_LABEL[listing.propertyType] ?? listing.propertyType}
+                  {PROPERTY_TYPE_LABEL[listing.propertyType] ?? listing.propertyType}
                 </span>
                 {listing.auctionCount > 0 && (
                   <span className="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded">
@@ -131,7 +121,7 @@ export default async function ListingsPage({
         <div className="flex justify-center gap-2 mt-6">
           {page > 1 && (
             <Link
-              href={`/listings?page=${page - 1}${type ? `&type=${type}` : ''}`}
+              href={`/listings?page=${page - 1}${typeParam ? `&type=${typeParam}` : ''}`}
               className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50"
             >
               이전
@@ -142,7 +132,7 @@ export default async function ListingsPage({
           </span>
           {page < Math.ceil(total / 20) && (
             <Link
-              href={`/listings?page=${page + 1}${type ? `&type=${type}` : ''}`}
+              href={`/listings?page=${page + 1}${typeParam ? `&type=${typeParam}` : ''}`}
               className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50"
             >
               다음

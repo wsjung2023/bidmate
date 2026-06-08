@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import Link from 'next/link'
+import { LISTING_TYPE_LABEL } from '@/lib/labels'
 
 export default async function DashboardPage() {
   const [total, analyzed, highScore, dropped] = await Promise.all([
@@ -50,7 +51,7 @@ export default async function DashboardPage() {
             <div>
               <p className="text-sm font-medium text-gray-900">{listing.address}</p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {listing.listingType === 'AUCTION' ? '경매' : listing.listingType === 'PUBLIC_SALE' ? '공매' : '숙박임차'} · {listing.propertyType}
+                {LISTING_TYPE_LABEL[listing.listingType] ?? listing.listingType} · {listing.propertyType}
               </p>
             </div>
             <div className="text-right">

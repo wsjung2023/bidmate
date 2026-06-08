@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { auth } from '@/lib/auth/config'
-import type { ListingType } from '@prisma/client'
+import { ListingType } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -11,9 +11,13 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = req.nextUrl
-  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
-  const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '20')))
-  const type = searchParams.get('type') as ListingType | null
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1') || 1)
+  const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') ?? '20') || 20))
+  const VALID_LISTING_TYPES = new Set<string>(['AUCTION', 'PUBLIC_SALE', 'LODGING_LEASE'])
+  const typeParam = searchParams.get('type')
+  const type: ListingType | null = typeParam && VALID_LISTING_TYPES.has(typeParam)
+    ? (typeParam as ListingType)
+    : null
   const dropped = searchParams.get('dropped') === 'true'
 
   const where = {
