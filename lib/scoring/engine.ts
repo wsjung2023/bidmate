@@ -28,7 +28,7 @@ function scoreRights(r: AgentOutputs['rightsAnalysis']): number {
 }
 
 function scoreCommercial(c: AgentOutputs['commercialArea']): number {
-  const proximity = (c.touristProximityScore / 100) * 12
+  const proximity = (c.touristProximityScore / 100) * 17
   const occupancy = c.occupancyRateBenchmark >= 80 ? 8 : c.occupancyRateBenchmark >= 60 ? 5 : 2
   const competitorPenalty =
     c.competitorCount <= 2 ? 0 : c.competitorCount <= 5 ? 1 : c.competitorCount <= 10 ? 2 : 5

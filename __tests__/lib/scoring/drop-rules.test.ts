@@ -41,6 +41,7 @@ describe('checkDropRules', () => {
   it('safe listing is not dropped', () => {
     const result = checkDropRules(safeOutputs, 700_000_000, 850_000_000)
     expect(result.drop).toBe(false)
+    expect(result.reason).toBeUndefined()
   })
 
   it('drops listing with legal surface right', () => {
@@ -70,6 +71,7 @@ describe('checkDropRules', () => {
     }
     const result = checkDropRules(outputs, 700_000_000, 850_000_000)
     expect(result.drop).toBe(true)
+    expect(result.reason).toContain('인허가')
   })
 
   it('drops listing with ROI under 5%', () => {

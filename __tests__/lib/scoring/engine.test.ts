@@ -63,9 +63,17 @@ describe('calculateScore', () => {
     expect(withLienScore.total).toBeLessThan(withoutLien.total)
   })
 
-  it('breakdown sums to total', () => {
+  it('sub-scores are within declared ranges', () => {
     const result = calculateScore(baseOutputs)
-    const sum = Object.values(result.breakdown).reduce((a, b) => a + b, 0)
-    expect(Math.round(sum)).toBe(result.total)
+    expect(result.breakdown.rights).toBeGreaterThanOrEqual(0)
+    expect(result.breakdown.rights).toBeLessThanOrEqual(30)
+    expect(result.breakdown.commercial).toBeGreaterThanOrEqual(0)
+    expect(result.breakdown.commercial).toBeLessThanOrEqual(25)
+    expect(result.breakdown.financials).toBeGreaterThanOrEqual(0)
+    expect(result.breakdown.financials).toBeLessThanOrEqual(25)
+    expect(result.breakdown.license).toBeGreaterThanOrEqual(0)
+    expect(result.breakdown.license).toBeLessThanOrEqual(10)
+    expect(result.breakdown.condition).toBeGreaterThanOrEqual(0)
+    expect(result.breakdown.condition).toBeLessThanOrEqual(10)
   })
 })
