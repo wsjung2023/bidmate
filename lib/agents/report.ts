@@ -98,7 +98,6 @@ ${strategy ? `권장 입찰가: ${(strategy.recommendedBid / 100_000_000).toFixe
   try {
     const fullReport = await callLLM(prompt, 'premium', SYSTEM)
 
-    const firstLine = fullReport.split('\n').find((l) => l.trim())?.replace(/^#+ /, '') ?? '투자 분석 보고서'
     const summary = fullReport.split('\n').filter((l) => l.trim() && !l.startsWith('#')).slice(0, 3).join(' ')
 
     return {
