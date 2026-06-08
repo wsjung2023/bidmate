@@ -18,7 +18,7 @@ export async function runRisk(
   outputs: Omit<AgentOutputs, 'riskFactors' | 'strategy'>,
 ): Promise<RiskFactors> {
   const prompt = `
-매물: ${listing.address} (${listing.propertyType}, ${listing.listingType})
+매물: ${listing.address} (${listing.propertyType}${listing.listingType ? `, ${listing.listingType}` : ''})
 건축연도: ${listing.buildYear ?? '미상'}, 유찰: ${listing.auctionCount}회
 
 [권리분석]
