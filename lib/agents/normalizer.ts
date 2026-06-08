@@ -22,8 +22,8 @@ export async function runNormalizer(listing: Listing): Promise<NormalizerOutput>
 - 면적: ${listing.area ? `${listing.area}m²` : '정보 없음'}
 - 건축연도: ${listing.buildYear ?? '정보 없음'}
 - 층수: ${listing.floorInfo ?? '정보 없음'}
-- 최저입찰가: ${(Number(listing.minimumBid) / 100_000_000).toFixed(1)}억원
-- 감정가: ${(Number(listing.appraisalValue) / 100_000_000).toFixed(1)}억원
+- 최저입찰가: ${listing.minimumBid != null ? (Number(listing.minimumBid / 100_000_000n) + Number(listing.minimumBid % 100_000_000n) / 100_000_000).toFixed(1) : '정보 없음'}억원
+- 감정가: ${listing.appraisalValue != null ? (Number(listing.appraisalValue / 100_000_000n) + Number(listing.appraisalValue % 100_000_000n) / 100_000_000).toFixed(1) : '정보 없음'}억원
 - 유찰 횟수: ${listing.auctionCount}회
 
 위 정보를 바탕으로:
@@ -32,10 +32,13 @@ export async function runNormalizer(listing: Listing): Promise<NormalizerOutput>
 3. 특이사항 또는 주의사항
 `.trim()
 
-  const output = await callLLMStructured(prompt, NormalizerOutputSchema, 'fast')
-
-  return {
-    listingId: listing.id,
-    ...output,
+  try {
+    const output = await callLLMStructured(prompt, NormalizerOutputSchema, 'fast')
+    return {
+      listingId: listing.id,
+      ...output,
+    }
+  } catch (err) {
+    throw new Error(`Normalizer failed for listing ${listing.id}: ${(err as Error).message}`)
   }
 }

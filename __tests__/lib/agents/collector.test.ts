@@ -13,9 +13,15 @@ jest.mock('@/lib/db/prisma', () => ({
 
 describe('runCollector', () => {
   it('returns listings from the database', async () => {
+    const { prisma } = jest.requireMock('@/lib/db/prisma')
     const results = await runCollector({ source: 'mock' })
     expect(results).toHaveLength(2)
     expect(results[0].externalId).toBe('MOCK-001')
+    expect(prisma.listing.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { source: 'mock', isDropped: false },
+      })
+    )
   })
 
   it('returns empty array when no listings match', async () => {
