@@ -1,6 +1,10 @@
 /**
  * @jest-environment node
  */
+
+// Set env var before module is loaded so createPrismaClient() doesn't throw
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test'
+
 import { prisma } from '@/lib/db/prisma'
 
 describe('Prisma client singleton', () => {
