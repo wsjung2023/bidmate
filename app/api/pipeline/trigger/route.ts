@@ -28,25 +28,36 @@ export async function POST(req: NextRequest) {
     let failed = 0
     let dropped = 0
 
-    for (const listing of listings) {
-      const result = await runPipeline(listing)
-      if (result.status === 'FAILED') failed++
-      else if (result.status === 'DROPPED') dropped++
-      else processed++
+    try {
+      for (const listing of listings) {
+        const result = await runPipeline(listing)
+        if (result.status === 'FAILED') failed++
+        else if (result.status === 'DROPPED') dropped++
+        else processed++
+
+        await prisma.pipelineRun.update({
+          where: { id: run.id },
+          data: { processed, failed, dropped },
+        })
+      }
+
+      const finalStatus =
+        listings.length === 0 || (failed === 0 && dropped === 0)
+          ? 'COMPLETED'
+          : failed === listings.length
+            ? 'FAILED'
+            : 'PARTIAL'
 
       await prisma.pipelineRun.update({
         where: { id: run.id },
-        data: { processed, failed, dropped },
+        data: { status: finalStatus, completedAt: new Date() },
       })
+    } catch (err) {
+      await prisma.pipelineRun.update({
+        where: { id: run.id },
+        data: { status: 'FAILED', completedAt: new Date() },
+      }).catch(() => {}) // best-effort — don't re-throw if DB is also down
     }
-
-    await prisma.pipelineRun.update({
-      where: { id: run.id },
-      data: {
-        status: failed === listings.length ? 'FAILED' : dropped + failed > 0 ? 'PARTIAL' : 'COMPLETED',
-        completedAt: new Date(),
-      },
-    })
   })()
 
   return NextResponse.json({ runId: run.id, totalItems: listings.length })
