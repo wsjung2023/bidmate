@@ -35,4 +35,17 @@ describe('mockListings', () => {
     const ids = mockListings.map((l) => l.externalId)
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  it('all listings have source === "mock"', () => {
+    expect(mockListings.every((l) => l.source === 'mock')).toBe(true)
+  })
+
+  it('all coordinates are within Korean territory bounds', () => {
+    for (const listing of mockListings) {
+      expect(listing.latitude).toBeGreaterThanOrEqual(33.0)
+      expect(listing.latitude).toBeLessThanOrEqual(38.7)
+      expect(listing.longitude).toBeGreaterThanOrEqual(124.5)
+      expect(listing.longitude).toBeLessThanOrEqual(130.0)
+    }
+  })
 })
