@@ -8,7 +8,7 @@ const RightsSchema = z.object({
   hasInjunction: z.boolean().describe('가처분/가압류 있음'),
   hasLegalSurfaceRight: z.boolean().describe('법정지상권 성립 가능성 있음'),
   hasOccupancy: z.boolean().describe('임차인 점유 있음'),
-  hasUnpaidRent: z.boolean().describe('미납 임대료 있음'),
+  hasUnpaidRent: z.boolean().describe('대항력 있는 임차인의 미반환 보증금 있음'),
   hasTaxLien: z.boolean().describe('국세/지방세 체납 있음'),
   clearanceEstimate: z.number().describe('인수해야 할 권리 추정 금액 (KRW, 없으면 0)'),
   summary: z.string().describe('권리분석 요약 (2-3문장, 한국어)'),
@@ -49,27 +49,30 @@ export async function runDueDiligence(listing: Listing): Promise<DueDiligenceOut
 - 거래 유형: ${listing.listingType}
 - 면적: ${listing.area ? `${listing.area}m²` : '정보 없음'}
 - 건축연도: ${listing.buildYear ?? '정보 없음'}
-- 최저입찰가: ${listing.minimumBid != null ? (Number(listing.minimumBid / 100_000_000n) + Number(listing.minimumBid % 100_000_000n) / 100_000_000).toFixed(1) : '정보 없음'}억원
-- 감정가: ${listing.appraisalValue != null ? (Number(listing.appraisalValue / 100_000_000n) + Number(listing.appraisalValue % 100_000_000n) / 100_000_000).toFixed(1) : '정보 없음'}억원
+- 최저입찰가: ${(Number(listing.minimumBid) / 100_000_000).toFixed(1)}억원
+- 감정가: ${(Number(listing.appraisalValue) / 100_000_000).toFixed(1)}억원
 - 유찰 횟수: ${listing.auctionCount}회
 ${listing.court ? `- 관할 법원: ${listing.court}` : ''}
 ${listing.caseNumber ? `- 사건번호: ${listing.caseNumber}` : ''}
 `.trim()
 
-  const [rightsAnalysis, licenseCheck] = await Promise.all([
-    callLLMStructured(
-      `${context}\n\n위 매물의 권리관계를 분석하라.`,
-      RightsSchema,
-      'standard',
-      RIGHTS_SYSTEM,
-    ),
-    callLLMStructured(
-      `${context}\n\n위 매물의 숙박업 인허가 가능성을 분석하라.`,
-      LicenseSchema,
-      'standard',
-      LICENSE_SYSTEM,
-    ),
-  ])
-
-  return { rightsAnalysis, licenseCheck }
+  try {
+    const [rightsAnalysis, licenseCheck] = await Promise.all([
+      callLLMStructured(
+        `${context}\n\n위 매물의 권리관계를 분석하라.`,
+        RightsSchema,
+        'standard',
+        RIGHTS_SYSTEM,
+      ),
+      callLLMStructured(
+        `${context}\n\n위 매물의 숙박업 인허가 가능성을 분석하라.`,
+        LicenseSchema,
+        'standard',
+        LICENSE_SYSTEM,
+      ),
+    ])
+    return { rightsAnalysis, licenseCheck }
+  } catch (err) {
+    throw new Error(`DueDiligence failed for listing ${listing.id}: ${(err as Error).message}`)
+  }
 }
