@@ -23,7 +23,7 @@ const partialOutputs = {
 describe('runRisk', () => {
   it('returns risk level and factors', async () => {
     const listing = { id: '1', address: '강원도', propertyType: 'PENSION', buildYear: 2000, auctionCount: 1 }
-    const result = await runRisk(listing as any, partialOutputs as AgentOutputs)
+    const result = await runRisk(listing as any, partialOutputs as unknown as AgentOutputs)
     expect(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).toContain(result.level)
     expect(Array.isArray(result.factors)).toBe(true)
   })
