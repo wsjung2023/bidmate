@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { useState } from 'react'
 
 const FormSchema = z.object({
-  minScore: z.coerce.number().min(0).max(100),
+  minScore: z.number().min(0).max(100),
   regions: z.string(),
   telegramChatId: z.string().optional(),
   notifyEnabled: z.boolean(),
@@ -77,7 +77,7 @@ export function SettingsForm({ initialCriteria }: { initialCriteria: Criteria })
           type="number"
           min={0}
           max={100}
-          {...register('minScore')}
+          {...register('minScore', { valueAsNumber: true })}
           className="w-32 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-xs text-gray-400 mt-1">이 점수 미만의 매물은 Telegram 알림에서 제외</p>
