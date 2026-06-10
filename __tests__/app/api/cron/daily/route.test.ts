@@ -30,6 +30,10 @@ jest.mock('@/lib/notifications/telegram', () => ({
   formatListingAlert: jest.fn().mockReturnValue('alert text'),
 }))
 
+jest.mock('@/lib/collectors/court-auction', () => ({
+  collectCourtAuction: jest.fn().mockResolvedValue({ collected: 0, skipped: 0, errors: 0 }),
+}))
+
 describe('GET /api/cron/daily', () => {
   it('returns 401 without correct secret', async () => {
     const req = new NextRequest('http://localhost/api/cron/daily', {

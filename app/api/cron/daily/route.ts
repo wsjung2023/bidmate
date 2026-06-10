@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db/prisma'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { sendTelegramMessage, formatListingAlert } from '@/lib/notifications/telegram'
 import { collectCourtAuction } from '@/lib/collectors/court-auction'
+import { matchesAnyCriteria } from '@/lib/pipeline/pre-filter'
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -24,11 +25,15 @@ export async function GET(req: NextRequest) {
 
   const run = await prisma.pipelineRun.create({ data: { status: 'RUNNING' } })
 
-  const listings = await prisma.listing.findMany({
+  const allCriteria = await prisma.investmentCriteria.findMany()
+
+  const candidates = await prisma.listing.findMany({
     where: { isDropped: false, score: null },
-    orderBy: { collectedAt: 'desc' },
-    take: 50,
+    orderBy: [{ collectedAt: 'desc' }],
+    take: 200,
   })
+
+  const listings = candidates.filter((l) => matchesAnyCriteria(l, allCriteria)).slice(0, 50)
 
   await prisma.pipelineRun.update({
     where: { id: run.id },
