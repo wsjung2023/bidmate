@@ -3,6 +3,7 @@ import { callLLMStructured } from '@/lib/llm/client'
 import type { Listing } from '@prisma/client'
 import type { CommercialArea } from './types'
 import { searchNearbyLodging, searchNearbyAttractions } from '@/lib/collectors/kakao-local'
+import type { ModelPreset } from '@/lib/llm/presets'
 
 const CommercialSchema = z.object({
   touristProximityScore: z.number().min(0).max(100).describe('관광지 접근성 점수 (0-100)'),
@@ -17,7 +18,7 @@ const SYSTEM = `당신은 한국 숙박업 상권 분석 전문가다.
 카카오 데이터가 없을 경우 주소와 물건 종류로 추정 분석한다.
 계절성(스키/여름 해수욕 등)과 지역 특성을 반드시 고려하라.`
 
-export async function runCommercial(listing: Listing): Promise<CommercialArea> {
+export async function runCommercial(listing: Listing, preset?: ModelPreset): Promise<CommercialArea> {
   let kakaoContext = ''
   if (listing.latitude != null && listing.longitude != null) {
     const [lodging, attractions] = await Promise.all([
@@ -51,7 +52,7 @@ ${kakaoContext || '\n[좌표 없음 — 주소 기반 추정]'}
 `.trim()
 
   try {
-    return await callLLMStructured(prompt, CommercialSchema, 'standard', SYSTEM)
+    return await callLLMStructured(prompt, CommercialSchema, 'standard', SYSTEM, preset)
   } catch (err) {
     throw new Error(`Commercial failed for listing ${listing.id}: ${(err as Error).message}`)
   }

@@ -1,29 +1,40 @@
 import { generateText, generateObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { openai } from '@ai-sdk/openai'
 import type { z } from 'zod'
+import type { ProviderModel } from './presets'
+import { PRESETS, DEFAULT_PRESET } from './presets'
+import type { ModelPreset } from './presets'
 
 export type LLMTier = 'fast' | 'standard' | 'premium'
 
-// fast     → claude-haiku-4-5     ($1/$5 per 1M)   — classification, filtering
-// standard → claude-sonnet-4-6   ($3/$15 per 1M)  — main analysis (default)
-// premium  → claude-opus-4-8     ($5/$25 per 1M)  — final report, complex reasoning
-const MODEL_IDS: Record<LLMTier, string> = {
-  fast: 'claude-haiku-4-5-20251001',
-  standard: 'claude-sonnet-4-6',
-  premium: 'claude-opus-4-8',
+// Legacy tier → default preset model mapping (used when no preset is active)
+const LEGACY_MODEL_IDS: Record<LLMTier, ProviderModel> = {
+  fast:     { provider: 'anthropic', modelId: 'claude-haiku-4-5-20251001' },
+  standard: { provider: 'anthropic', modelId: 'claude-sonnet-4-6' },
+  premium:  { provider: 'anthropic', modelId: 'claude-opus-4-8' },
 }
 
-function getModel(tier: LLMTier) {
-  return anthropic(MODEL_IDS[tier])
+function getLanguageModel(pm: ProviderModel) {
+  if (pm.provider === 'openai') return openai(pm.modelId)
+  return anthropic(pm.modelId)
+}
+
+function resolveModel(tier: LLMTier, preset?: ModelPreset): ProviderModel {
+  if (!preset) return LEGACY_MODEL_IDS[tier]
+  const config = PRESETS[preset]
+  return tier === 'premium' ? config.reportModel : config.analysisModel
 }
 
 export async function callLLM(
   prompt: string,
   tier: LLMTier = 'standard',
   systemPrompt?: string,
+  preset?: ModelPreset,
 ): Promise<string> {
+  const model = resolveModel(tier, preset)
   const { text } = await generateText({
-    model: getModel(tier),
+    model: getLanguageModel(model),
     ...(systemPrompt ? { system: systemPrompt } : {}),
     prompt,
     maxOutputTokens: 4096,
@@ -36,9 +47,11 @@ export async function callLLMStructured<T>(
   schema: z.ZodType<T>,
   tier: LLMTier = 'standard',
   systemPrompt?: string,
+  preset?: ModelPreset,
 ): Promise<T> {
+  const model = resolveModel(tier, preset)
   const { object } = await generateObject({
-    model: getModel(tier),
+    model: getLanguageModel(model),
     schema,
     ...(systemPrompt ? { system: systemPrompt } : {}),
     prompt,

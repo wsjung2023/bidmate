@@ -19,6 +19,8 @@ export const authConfig = {
   callbacks: {
     session({ session, user }) {
       session.user.id = user.id
+      // @ts-expect-error - role comes from Prisma User via adapter
+      session.user.role = user.role ?? 'USER'
       return session
     },
   },

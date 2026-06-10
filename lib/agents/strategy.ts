@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { callLLMStructured } from '@/lib/llm/client'
 import type { Listing } from '@prisma/client'
 import type { AgentOutputs, Strategy } from './types'
+import type { ModelPreset } from '@/lib/llm/presets'
 
 const StrategySchema = z.object({
   recommendedBid: z.number().describe('권장 입찰가 (KRW)'),
@@ -14,7 +15,7 @@ const SYSTEM = `당신은 부동산 투자 전략 컨설턴트다.
 분석된 데이터를 바탕으로 최적의 입찰 전략과 운영 계획을 제시한다.
 입찰가는 수익성과 경쟁 상황을 고려하여 감정가 대비 비율로 제시한다.`
 
-export async function runStrategy(listing: Listing, outputs: AgentOutputs): Promise<Strategy> {
+export async function runStrategy(listing: Listing, outputs: AgentOutputs, preset?: ModelPreset): Promise<Strategy> {
   const prompt = `
 매물: ${listing.address} (${listing.propertyType})
 최저입찰가: ${(Number(listing.minimumBid) / 100_000_000).toFixed(1)}억원
@@ -32,7 +33,7 @@ export async function runStrategy(listing: Listing, outputs: AgentOutputs): Prom
 `.trim()
 
   try {
-    return await callLLMStructured(prompt, StrategySchema, 'standard', SYSTEM)
+    return await callLLMStructured(prompt, StrategySchema, 'standard', SYSTEM, preset)
   } catch (err) {
     throw new Error(`Strategy failed for listing ${listing.id}: ${(err as Error).message}`)
   }

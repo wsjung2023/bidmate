@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { callLLMStructured } from '@/lib/llm/client'
 import type { Listing } from '@prisma/client'
 import type { RightsAnalysis, LicenseCheck } from './types'
+import type { ModelPreset } from '@/lib/llm/presets'
 
 const RightsSchema = z.object({
   hasLien: z.boolean().describe('저당권/근저당권 있음'),
@@ -41,7 +42,7 @@ export type DueDiligenceOutput = {
   licenseCheck: LicenseCheck
 }
 
-export async function runDueDiligence(listing: Listing): Promise<DueDiligenceOutput> {
+export async function runDueDiligence(listing: Listing, preset?: ModelPreset): Promise<DueDiligenceOutput> {
   const context = `
 매물 정보:
 - 주소: ${listing.address}
@@ -63,12 +64,14 @@ ${listing.caseNumber ? `- 사건번호: ${listing.caseNumber}` : ''}
         RightsSchema,
         'standard',
         RIGHTS_SYSTEM,
+        preset,
       ),
       callLLMStructured(
         `${context}\n\n위 매물의 숙박업 인허가 가능성을 분석하라.`,
         LicenseSchema,
         'standard',
         LICENSE_SYSTEM,
+        preset,
       ),
     ])
     return { rightsAnalysis, licenseCheck }

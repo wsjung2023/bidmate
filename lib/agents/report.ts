@@ -2,6 +2,7 @@ import { callLLM } from '@/lib/llm/client'
 import type { Listing } from '@prisma/client'
 import type { AgentOutputs } from './types'
 import type { ScoreResult } from '@/lib/scoring/types'
+import type { ModelPreset } from '@/lib/llm/presets'
 
 export type ReportOutput = {
   title: string
@@ -30,6 +31,7 @@ export async function runReport(
   listing: Listing,
   outputs: AgentOutputs,
   score: ScoreResult,
+  preset?: ModelPreset,
 ): Promise<ReportOutput> {
   const { rightsAnalysis, licenseCheck, commercialArea, financials, riskFactors, strategy } = outputs
 
@@ -96,7 +98,7 @@ ${strategy ? `권장 입찰가: ${(strategy.recommendedBid / 100_000_000).toFixe
 `.trim()
 
   try {
-    const fullReport = await callLLM(prompt, 'premium', SYSTEM)
+    const fullReport = await callLLM(prompt, 'premium', SYSTEM, preset)
 
     const summary = fullReport.split('\n').filter((l) => l.trim() && !l.startsWith('#')).slice(0, 3).join(' ')
 

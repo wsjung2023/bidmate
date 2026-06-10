@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { callLLMStructured } from '@/lib/llm/client'
 import type { Listing } from '@prisma/client'
 import type { AgentOutputs, RiskFactors } from './types'
+import type { ModelPreset } from '@/lib/llm/presets'
 
 const RiskSchema = z.object({
   level: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).describe('전체 위험 수준'),
@@ -16,6 +17,7 @@ const SYSTEM = `당신은 부동산 투자 리스크 분석 전문가다.
 export async function runRisk(
   listing: Listing,
   outputs: Omit<AgentOutputs, 'riskFactors' | 'strategy'>,
+  preset?: ModelPreset,
 ): Promise<RiskFactors> {
   const prompt = `
 매물: ${listing.address} (${listing.propertyType}${listing.listingType ? `, ${listing.listingType}` : ''})
@@ -44,7 +46,7 @@ export async function runRisk(
 `.trim()
 
   try {
-    return await callLLMStructured(prompt, RiskSchema, 'standard', SYSTEM)
+    return await callLLMStructured(prompt, RiskSchema, 'standard', SYSTEM, preset)
   } catch (err) {
     throw new Error(`Risk failed for listing ${listing.id}: ${(err as Error).message}`)
   }

@@ -10,6 +10,17 @@ import { runReport } from '@/lib/agents/report'
 import { calculateScore } from '@/lib/scoring/engine'
 import { checkDropRules } from '@/lib/scoring/drop-rules'
 import type { AgentOutputs } from '@/lib/agents/types'
+import type { ModelPreset } from '@/lib/llm/presets'
+import { DEFAULT_PRESET } from '@/lib/llm/presets'
+
+async function getActivePreset(): Promise<ModelPreset> {
+  try {
+    const config = await prisma.appConfig.findUnique({ where: { id: 'default' } })
+    return (config?.pipelinePreset ?? DEFAULT_PRESET) as ModelPreset
+  } catch {
+    return DEFAULT_PRESET
+  }
+}
 
 export type PipelineResult = {
   listingId: string
@@ -24,6 +35,8 @@ export type PipelineResult = {
 }
 
 export async function runPipeline(listing: Listing): Promise<PipelineResult> {
+  const preset = await getActivePreset()
+
   const analysis = await prisma.analysis.create({
     data: {
       listingId: listing.id,
@@ -34,13 +47,13 @@ export async function runPipeline(listing: Listing): Promise<PipelineResult> {
 
   try {
     // Step 1: Normalize
-    const normalized = await runNormalizer(listing)
+    const normalized = await runNormalizer(listing, preset)
 
     // Step 2: Due Diligence (rights + license)
-    const { rightsAnalysis, licenseCheck } = await runDueDiligence(listing)
+    const { rightsAnalysis, licenseCheck } = await runDueDiligence(listing, preset)
 
     // Step 3: Commercial area
-    const commercialArea = await runCommercial(listing)
+    const commercialArea = await runCommercial(listing, preset)
 
     // Step 4: Financials (deterministic)
     const financials = calculateFinancials({
@@ -93,7 +106,7 @@ export async function runPipeline(listing: Listing): Promise<PipelineResult> {
     }
 
     // Step 6: Risk assessment
-    const riskFactors = await runRisk(listing, partialOutputs as AgentOutputs)
+    const riskFactors = await runRisk(listing, partialOutputs as AgentOutputs, preset)
 
     const outputs: AgentOutputs = { ...partialOutputs, riskFactors }
 
@@ -101,11 +114,11 @@ export async function runPipeline(listing: Listing): Promise<PipelineResult> {
     const score = calculateScore(outputs)
 
     // Step 8: Strategy
-    const strategy = await runStrategy(listing, outputs)
+    const strategy = await runStrategy(listing, outputs, preset)
     outputs.strategy = strategy
 
     // Step 9: Report (uses premium model)
-    const reportOutput = await runReport(listing, outputs, score)
+    const reportOutput = await runReport(listing, outputs, score, preset)
 
     // Persist analysis
     await prisma.analysis.update({

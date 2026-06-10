@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { callLLMStructured } from '@/lib/llm/client'
 import type { Listing } from '@prisma/client'
+import type { ModelPreset } from '@/lib/llm/presets'
 
 const NormalizerOutputSchema = z.object({
   propertyDescription: z.string().describe('1-2 문장 한국어 물건 요약'),
@@ -12,7 +13,7 @@ export type NormalizerOutput = z.infer<typeof NormalizerOutputSchema> & {
   listingId: string
 }
 
-export async function runNormalizer(listing: Listing): Promise<NormalizerOutput> {
+export async function runNormalizer(listing: Listing, preset?: ModelPreset): Promise<NormalizerOutput> {
   const prompt = `
 다음 경매/공매 매물을 분석하여 구조화된 정보를 추출하라.
 
@@ -33,7 +34,7 @@ export async function runNormalizer(listing: Listing): Promise<NormalizerOutput>
 `.trim()
 
   try {
-    const output = await callLLMStructured(prompt, NormalizerOutputSchema, 'fast')
+    const output = await callLLMStructured(prompt, NormalizerOutputSchema, 'fast', undefined, preset)
     return {
       listingId: listing.id,
       ...output,

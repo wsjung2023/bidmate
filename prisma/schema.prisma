@@ -244,6 +244,16 @@ model SavedListing {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// App-wide configuration (singleton, id = "default")
+// ═══════════════════════════════════════════════════════════════
+
+model AppConfig {
+  id            String @id @default("default")
+  pipelinePreset String @default("standard")
+  updatedAt     DateTime @updatedAt
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Pipeline orchestration
 // ═══════════════════════════════════════════════════════════════
 
