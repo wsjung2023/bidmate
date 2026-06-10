@@ -7,9 +7,11 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const icon = PROPERTY_ICONS[listing.propertyType] ?? '📍'
   const priceEok = (Number(listing.minimumBid) / 1e8).toFixed(1)
   const appraisalEok = (Number(listing.appraisalValue) / 1e8).toFixed(1)
-  const discount = Math.round(
-    ((Number(listing.appraisalValue) - Number(listing.minimumBid)) / Number(listing.appraisalValue)) * 100,
-  )
+  const appraisalNum = Number(listing.appraisalValue)
+  const discount =
+    appraisalNum > 0
+      ? Math.round(((appraisalNum - Number(listing.minimumBid)) / appraisalNum) * 100)
+      : 0
 
   return (
     <Link
@@ -45,7 +47,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
         {listing.auctionDate && (
           <span>
             경매{' '}
-            {listing.auctionDate.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}
+            {new Date(listing.auctionDate).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}
           </span>
         )}
         {listing.auctionCount > 0 && (

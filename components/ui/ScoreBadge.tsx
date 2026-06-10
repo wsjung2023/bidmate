@@ -3,21 +3,22 @@ export function ScoreBadge({ score, size = 'sm' }: { score: number | null; size?
 
   if (score === null) {
     return (
-      <span className={`${base} font-medium text-slate-400 bg-slate-100 rounded-full`}>
+      <span data-score-level="none" className={`${base} font-medium text-slate-400 bg-slate-100 rounded-full`}>
         미분석
       </span>
     )
   }
 
+  const level = score >= 70 ? 'high' : score >= 50 ? 'mid' : 'low'
   const colorCls =
-    score >= 70
+    level === 'high'
       ? 'bg-emerald-100 text-emerald-700'
-      : score >= 50
+      : level === 'mid'
         ? 'bg-amber-100 text-amber-700'
         : 'bg-red-100 text-red-600'
 
   return (
-    <span className={`${base} font-bold rounded-full ${colorCls}`}>
+    <span data-score-level={level} className={`${base} font-bold rounded-full ${colorCls}`}>
       {score}점
     </span>
   )
