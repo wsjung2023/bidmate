@@ -115,20 +115,20 @@ export default async function ListingDetailPage({
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
           {listing.buildYear && (
             <>
-              <dt className="text-gray-400">건축연도</dt>
-              <dd className="font-medium">{listing.buildYear}년 ({new Date().getFullYear() - listing.buildYear}년 경과)</dd>
+              <dt className="text-gray-600 font-medium">건축연도</dt>
+              <dd className="text-gray-900">{listing.buildYear}년 ({new Date().getFullYear() - listing.buildYear}년 경과)</dd>
             </>
           )}
           {listing.floorInfo && (
             <>
-              <dt className="text-gray-400">층수</dt>
-              <dd className="font-medium">{listing.floorInfo}</dd>
+              <dt className="text-gray-600 font-medium">층수</dt>
+              <dd className="text-gray-900">{listing.floorInfo}</dd>
             </>
           )}
           {listing.auctionDate && (
             <>
-              <dt className="text-gray-400">경매 일정</dt>
-              <dd className="font-medium">
+              <dt className="text-gray-600 font-medium">경매 일정</dt>
+              <dd className="text-gray-900">
                 {listing.auctionDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                 {listing.auctionCount > 0 && ` (${listing.auctionCount}회 유찰)`}
               </dd>
@@ -136,14 +136,14 @@ export default async function ListingDetailPage({
           )}
           {listing.court && (
             <>
-              <dt className="text-gray-400">관할 법원</dt>
-              <dd className="font-medium">{listing.court}</dd>
+              <dt className="text-gray-600 font-medium">관할 법원</dt>
+              <dd className="text-gray-900">{listing.court}</dd>
             </>
           )}
           {listing.caseNumber && (
             <>
-              <dt className="text-gray-400">사건번호</dt>
-              <dd className="font-mono text-sm">{listing.caseNumber}</dd>
+              <dt className="text-gray-600 font-medium">사건번호</dt>
+              <dd className="font-mono text-gray-900">{listing.caseNumber}</dd>
             </>
           )}
         </dl>

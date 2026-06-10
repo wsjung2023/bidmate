@@ -8,7 +8,7 @@ export type LLMTier = 'fast' | 'standard' | 'premium'
 // standard → claude-sonnet-4-6   ($3/$15 per 1M)  — main analysis (default)
 // premium  → claude-opus-4-8     ($5/$25 per 1M)  — final report, complex reasoning
 const MODEL_IDS: Record<LLMTier, string> = {
-  fast: 'claude-haiku-4-5',
+  fast: 'claude-haiku-4-5-20251001',
   standard: 'claude-sonnet-4-6',
   premium: 'claude-opus-4-8',
 }
