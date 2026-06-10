@@ -1,0 +1,7 @@
+[    1105ms] [LOG] toastMessage can not display because of $p.top().wfm_stgMain undefined... @ :7380
+[    1726ms] [LOG] toastMessage can not display because of $p.top().wfm_stgMain undefined... @ :7380
+[    1726ms] [LOG] mjrtyGds ===> [Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object] @ :280
+[    1726ms] [LOG] result ===> {nwstNtcMtr: Array(3), mjrtyItrtGds: Array(41), popNtcMtr: Array(0), nwstVtInfo: Object, dspslRate: Object} @ :281
+[   43635ms] [LOG] toastMessage can not display because of $p.top().wfm_stgMain undefined... @ :7380
+[   43637ms] [LOG] toastMessage can not display because of $p.top().wfm_stgMain undefined... @ :7380
+[  184347ms] [LOG] toastMessage can not display because of $p.top().wfm_stgMain undefined... @ :7380

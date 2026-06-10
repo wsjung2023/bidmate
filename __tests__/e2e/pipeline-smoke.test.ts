@@ -1,4 +1,3 @@
-import { mockListings } from '@/prisma/mock-data'
 import { calculateScore } from '@/lib/scoring/engine'
 import { checkDropRules } from '@/lib/scoring/drop-rules'
 
@@ -6,14 +5,6 @@ import { checkDropRules } from '@/lib/scoring/drop-rules'
 // Does NOT hit LLM or database — only tests the deterministic parts
 
 describe('Pipeline smoke test (deterministic only)', () => {
-  it('all 20 mock listings have valid price relationships', () => {
-    for (const listing of mockListings) {
-      expect(Number(listing.minimumBid)).toBeLessThanOrEqual(Number(listing.appraisalValue))
-      expect(Number(listing.minimumBid)).toBeGreaterThan(0)
-      expect(Number(listing.appraisalValue)).toBeGreaterThan(0)
-    }
-  })
-
   it('scoring engine produces valid scores for representative inputs', () => {
     const testOutputs = {
       rightsAnalysis: { hasLien: false, hasInjunction: false, hasLegalSurfaceRight: false, hasOccupancy: false, hasUnpaidRent: false, hasTaxLien: false, clearanceEstimate: 0, summary: '' },

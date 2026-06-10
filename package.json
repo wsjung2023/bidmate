@@ -10,14 +10,11 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch"
   },
-  "prisma": {
-    "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
-  },
+  "prisma": {},
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.81",
     "@auth/prisma-adapter": "^2.11.2",
