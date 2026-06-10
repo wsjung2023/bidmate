@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     take: 200,
   })
 
-  const listings = candidates.filter((l) => matchesAnyCriteria(l, allCriteria)).slice(0, 50)
+  const listings = candidates.filter((l) => matchesAnyCriteria(l, allCriteria)).slice(0, 5)
 
   await prisma.pipelineRun.update({
     where: { id: run.id },
