@@ -33,7 +33,7 @@ export async function runNormalizer(listing: Listing): Promise<NormalizerOutput>
 `.trim()
 
   try {
-    const output = await callLLMStructured(prompt, NormalizerOutputSchema, 'fast')
+    const output = await callLLMStructured(prompt, NormalizerOutputSchema, 'standard')
     return {
       listingId: listing.id,
       ...output,

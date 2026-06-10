@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { runPipeline } from '@/lib/pipeline/orchestrator'
 import { sendTelegramMessage, formatListingAlert } from '@/lib/notifications/telegram'
+import { collectCourtAuction } from '@/lib/collectors/court-auction'
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -10,6 +11,15 @@ export async function GET(req: NextRequest) {
 
   if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 1단계: 법원경매 데이터 수집
+  let collectionStats = { collected: 0, skipped: 0, errors: 0 }
+  try {
+    collectionStats = await collectCourtAuction()
+    console.log(`[cron] 수집 완료: ${JSON.stringify(collectionStats)}`)
+  } catch (e) {
+    console.error('[cron] 수집 실패:', e)
   }
 
   const run = await prisma.pipelineRun.create({ data: { status: 'RUNNING' } })
@@ -93,6 +103,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     runId: run.id,
+    collection: collectionStats,
     totalItems: listings.length,
     processed,
     failed,
