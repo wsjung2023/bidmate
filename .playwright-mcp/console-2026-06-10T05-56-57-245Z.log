@@ -1,5 +1,0 @@
-[      37ms] [LOG] 1 @ https://www.courtauction.go.kr/:27
-[    1376ms] [LOG] toastMessage can not display because of $p.top().wfm_stgMain undefined... @ :7380
-[    2157ms] [LOG] toastMessage can not display because of $p.top().wfm_stgMain undefined... @ :7380
-[    2158ms] [LOG] mjrtyGds ===> [Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object, Object] @ :280
-[    2158ms] [LOG] result ===> {nwstNtcMtr: Array(3), mjrtyItrtGds: Array(41), popNtcMtr: Array(0), nwstVtInfo: Object, dspslRate: Object} @ :281

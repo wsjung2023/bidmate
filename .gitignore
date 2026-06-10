@@ -44,3 +44,6 @@ next-env.d.ts
 /app/generated/prisma
 
 .vercel
+
+# playwright mcp logs
+.playwright-mcp/
