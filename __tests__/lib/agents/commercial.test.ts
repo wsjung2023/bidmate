@@ -10,6 +10,17 @@ jest.mock('@/lib/llm/client', () => ({
   }),
 }))
 
+jest.mock('@/lib/collectors/kakao-local', () => ({
+  searchNearbyLodging: jest.fn().mockResolvedValue({
+    count: 3,
+    places: [{ name: '테스트 펜션', lat: 37.5, lng: 127.0 }],
+  }),
+  searchNearbyAttractions: jest.fn().mockResolvedValue({
+    count: 7,
+    places: [{ name: '설악산', lat: 37.7, lng: 128.4 }],
+  }),
+}))
+
 describe('runCommercial', () => {
   it('returns commercial area analysis', async () => {
     const listing = { id: '1', address: '강원도 평창군 대관령면', propertyType: 'PENSION', area: 412 }
