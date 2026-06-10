@@ -14,3 +14,14 @@ export const PROPERTY_TYPE_LABEL: Record<string, string> = {
   LAND: '토지',
   OTHER: '기타',
 }
+
+export const PROPERTY_ICONS: Record<string, string> = {
+  HOTEL: '🏨',
+  PENSION: '🏡',
+  GUESTHOUSE: '🏠',
+  MOTEL: '🏩',
+  RESORT: '🌴',
+  BUILDING: '🏢',
+  LAND: '🌿',
+  OTHER: '📍',
+}
