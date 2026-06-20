@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { AnalyzeButton } from './AnalyzeButton'
+import { BidCalculator, type SavedCalc } from './BidCalculator'
+import { deriveInputsFromListing } from '@/lib/finance/bid-calculator'
 
 const TYPE_LABEL: Record<string, string> = {
   AUCTION: '경매', PUBLIC_SALE: '공매', LODGING_LEASE: '숙박임차',
@@ -35,6 +37,10 @@ export default async function ListingDetailPage({
         take: 1,
         include: { report: true },
       },
+      bidCalculations: {
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      },
     },
   })
 
@@ -42,6 +48,20 @@ export default async function ListingDetailPage({
 
   const latestAnalysis = listing.analyses[0]
   const report = latestAnalysis?.report
+
+  const bidInputs = deriveInputsFromListing({
+    appraisalValue: Number(listing.appraisalValue),
+    minimumBid: Number(listing.minimumBid),
+  })
+  const savedCalcs: SavedCalc[] = listing.bidCalculations.map((c) => ({
+    id: c.id,
+    label: c.label,
+    bidPrice: c.bidPrice.toString(),
+    maxBid: c.maxBid.toString(),
+    roi: c.roi,
+    winRate: c.winRate,
+    createdAt: c.createdAt.toISOString(),
+  }))
 
   const discountRate = Math.round(
     ((Number(listing.appraisalValue) - Number(listing.minimumBid)) / Number(listing.appraisalValue)) * 100
@@ -185,11 +205,13 @@ export default async function ListingDetailPage({
       )}
 
       {listing.isDropped && listing.droppedReason && (
-        <div className="bg-red-50 rounded-xl border border-red-100 p-6">
+        <div className="bg-red-50 rounded-xl border border-red-100 p-6 mb-4">
           <h2 className="text-base font-semibold text-red-700 mb-2">분석 제외 사유</h2>
           <p className="text-sm text-red-600">{listing.droppedReason}</p>
         </div>
       )}
+
+      <BidCalculator listingId={listing.id} initialInputs={bidInputs} savedCalculations={savedCalcs} />
     </div>
   )
 }
