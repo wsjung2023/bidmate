@@ -141,8 +141,9 @@ model Listing {
 
   rawData Json?
 
-  analyses Analysis[]
-  savedBy  SavedListing[]
+  analyses        Analysis[]
+  savedBy         SavedListing[]
+  bidCalculations BidCalculation[]
 
   score         Int?
   isDropped     Boolean @default(false)
@@ -241,6 +242,40 @@ model SavedListing {
   createdAt DateTime @default(now())
 
   @@unique([userId, listingId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Bid calculator — saved 적정 입찰가 calculations (append-only history)
+//
+// FUTURE: a ListingOutcome model (실제 낙찰가/낙찰가율) will attach to
+// Listing. Predictions-vs-reality is computed by joining
+// Listing.bidCalculations.maxBid against that outcome. BidCalculation
+// already persists maxBid/bidPrice/winRate as columns, so the outcome
+// model is purely additive — no rework needed here.
+// ═══════════════════════════════════════════════════════════════
+
+model BidCalculation {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  userId String? // nullable; SaaS-ready (no relation enforced yet)
+  label  String?
+
+  inputs Json // full BidCalculatorInput (stable across input evolution)
+
+  bidPrice   BigInt // chosen/plan bid
+  maxBid     BigInt // computed max bid at targetRoi
+  netProfit  BigInt // 세후손익 at bidPrice
+  investment BigInt // 투자금 at bidPrice
+  roi        Float // 수익률 at bidPrice
+  winRate    Float // 감정가 대비 낙찰가율 at bidPrice
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([listingId, createdAt])
+  @@index([userId])
 }
 
 // ═══════════════════════════════════════════════════════════════
