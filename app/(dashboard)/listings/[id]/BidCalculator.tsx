@@ -17,7 +17,7 @@ export type SavedCalc = {
   maxBid: string
   roi: number
   winRate: number
-  createdAt: string
+  createdAtLabel: string // pre-formatted (KST) on the server to avoid hydration mismatch
 }
 
 const won = (n: number) => Math.round(n).toLocaleString('ko-KR')
@@ -299,7 +299,7 @@ export function BidCalculator({
             {savedCalculations.map((c) => (
               <li key={c.id} className="flex items-center justify-between px-3 py-2 text-sm">
                 <span className="text-gray-600">
-                  {new Date(c.createdAt).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}
+                  {c.createdAtLabel}
                   {c.label && ` · ${c.label}`}
                 </span>
                 <span className="text-gray-900">

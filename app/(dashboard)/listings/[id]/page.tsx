@@ -53,6 +53,13 @@ export default async function ListingDetailPage({
     appraisalValue: Number(listing.appraisalValue),
     minimumBid: Number(listing.minimumBid),
   })
+  // Format deterministically in KST so SSR and client render identical text
+  // (avoids hydration mismatch; server runs in UTC on Vercel).
+  const kstLabel = (d: Date) => {
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+    const p = (n: number) => String(n).padStart(2, '0')
+    return `${kst.getUTCFullYear()}.${p(kst.getUTCMonth() + 1)}.${p(kst.getUTCDate())} ${p(kst.getUTCHours())}:${p(kst.getUTCMinutes())}`
+  }
   const savedCalcs: SavedCalc[] = listing.bidCalculations.map((c) => ({
     id: c.id,
     label: c.label,
@@ -60,7 +67,7 @@ export default async function ListingDetailPage({
     maxBid: c.maxBid.toString(),
     roi: c.roi,
     winRate: c.winRate,
-    createdAt: c.createdAt.toISOString(),
+    createdAtLabel: kstLabel(c.createdAt),
   }))
 
   const discountRate = Math.round(
