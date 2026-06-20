@@ -11,6 +11,10 @@ jest.mock('@ai-sdk/anthropic', () => ({
   anthropic: jest.fn().mockReturnValue('mock-model'),
 }))
 
+jest.mock('@ai-sdk/openai', () => ({
+  openai: jest.fn().mockReturnValue('mock-model'),
+}))
+
 const { callLLM, callLLMStructured } = require('@/lib/llm/client')
 
 describe('LLM client', () => {
